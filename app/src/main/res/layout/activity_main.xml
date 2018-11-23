@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="net.ossrs.yasea.demo.MainActivity">
+
+    <LinearLayout
+        android:layout_marginBottom="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        >
+        <net.ossrs.yasea.SrsCameraView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:id="@+id/glsurfaceview_camera" />
+        <!--<com.google.android.exoplayer2.ui.SimpleExoPlayerView-->
+            <!--android:id="@+id/exoView"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="0dp"-->
+            <!--android:layout_weight="1"/>-->
+
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/exoView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+
+
+    </LinearLayout>
+
+    <!--android:layout_alignParentBottom="true"-->
+    <!--android:layout_alignParentLeft="true"-->
+    <!--android:layout_alignParentStart="true"-->
+    <!--android:layout_alignParentTop="true"-->
+    <!--android:layout_alignParentRight="true"-->
+    <!--android:layout_alignParentEnd="true"-->
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="publish"
+        android:id="@+id/publish"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="switch"
+        android:id="@+id/swCam"
+        android:layout_alignBottom="@+id/publish"
+        android:layout_toRightOf="@+id/publish" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="record"
+        android:id="@+id/record"
+        android:layout_alignBottom="@+id/publish"
+        android:layout_toRightOf="@id/swCam" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="soft encoder"
+        android:id="@+id/swEnc"
+        android:layout_alignBottom="@+id/publish"
+        android:layout_toRightOf="@id/record"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14dp"
+        android:text="rtmp://192.168.9.70:1935/cctv/001"
+        android:id="@+id/out_url"
+        android:textColor="@color/accent_material_light" />
+
+    <EditText
+        android:layout_marginTop="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14dp"
+        android:text="rtmp://192.168.9.70:1935/cctv/0012"
+        android:id="@+id/in_url"
+        android:textColor="@color/accent_material_light" />
+    <!--"rtmp://47.106.185.200/myapp/1"-->
+
+</RelativeLayout>
