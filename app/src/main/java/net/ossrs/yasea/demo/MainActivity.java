@@ -119,6 +119,8 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
             public void onClick(View v) {
                 if (btnPublish.getText().toString().contentEquals("publish")) {
                     rtmpUrlOut = efu.getText().toString();
+
+
                     SharedPreferences.Editor editor = sp.edit();
                     editor.putString("rtmpUrl", rtmpUrlOut);
                     editor.apply();
@@ -277,7 +279,9 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
         mPublisher.stopEncode();
         mPublisher.stopRecord();
         btnRecord.setText("record");
-        mPublisher.setScreenOrientation(newConfig.orientation);
+//        mPublisher.setScreenOrientation(newConfig.orientation);
+        //************************************************************* 修改
+        mPublisher.setScreenOrientation(Configuration.ORIENTATION_LANDSCAPE);
         if (btnPublish.getText().toString().contentEquals("stop")) {
             mPublisher.startEncode();
         }
