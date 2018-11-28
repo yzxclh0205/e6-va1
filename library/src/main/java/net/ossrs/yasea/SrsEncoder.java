@@ -87,6 +87,7 @@ public class SrsEncoder {
     }
 
     public boolean start() {
+        //若mp4混合器、flv混合器为空，直接返回false
         if (flvMuxer == null || mp4Muxer == null) {
             return false;
         }
@@ -529,25 +530,33 @@ public class SrsEncoder {
         RGBASoftEncode(data, width, height, true, 180, pts);
     }
 
+    //创建音频录制对象，audioResource，采样率，声道格式，音频格式（立体声），缓存大小
     public AudioRecord chooseAudioRecord() {
         AudioRecord mic = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, SrsEncoder.ASAMPLERATE,
             AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
+        //如果音频录制对象 状态不是初始化状态，
         if (mic.getState() != AudioRecord.STATE_INITIALIZED) {
+            //设置为单声道
             mic = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, SrsEncoder.ASAMPLERATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, getPcmBufferSize() * 4);
+            //如果音频录制对象还是 未初始化状态，将音频录制对象置空
             if (mic.getState() != AudioRecord.STATE_INITIALIZED) {
                 mic = null;
             } else {
+                //声道配置单声道
                 SrsEncoder.aChannelConfig = AudioFormat.CHANNEL_IN_MONO;
             }
         } else {
+            //声道配置标志 设置为立体声
             SrsEncoder.aChannelConfig = AudioFormat.CHANNEL_IN_STEREO;
         }
 
         return mic;
     }
 
+    //获取pcm 缓存数据
     private int getPcmBufferSize() {
+        //通过采样率，声道格式，音频采样大小 —+ 8191 。最后算出8191 的整数倍pcm缓存大小
         int pcmBufSize = AudioRecord.getMinBufferSize(ASAMPLERATE, AudioFormat.CHANNEL_IN_STEREO,
             AudioFormat.ENCODING_PCM_16BIT) + 8191;
         return pcmBufSize - (pcmBufSize % 8192);

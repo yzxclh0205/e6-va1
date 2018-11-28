@@ -27,10 +27,7 @@ import javax.microedition.khronos.opengles.GL10;
 /**
  * Created by Leo Ma on 2016/2/25.
  */
-public class
-
-
-SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
+public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
 
     //特效
     private GPUImageFilter magicFilter;
@@ -190,11 +187,12 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
     }
 
     //获取相机对象
-    public Camera getCamera(){
+    public Camera getCamera() {
         return this.mCamera;
     }
+
     //设置相机预览回调
-    public void setPreviewCallback(Camera.PreviewCallback previewCallback){
+    public void setPreviewCallback(Camera.PreviewCallback previewCallback) {
         this.mCamera.setPreviewCallback(previewCallback);
     }
 
@@ -225,10 +223,10 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
 
         //输入的宽高比，这里是预览视图的宽和高。取值大于大于1
         mInputAspectRatio = mPreviewWidth > mPreviewHeight ?
-            (float) mPreviewWidth / mPreviewHeight : (float) mPreviewHeight / mPreviewWidth;
+                (float) mPreviewWidth / mPreviewHeight : (float) mPreviewHeight / mPreviewWidth;
 
         //返回预览 宽、高值
-        return new int[] { mPreviewWidth, mPreviewHeight };
+        return new int[]{mPreviewWidth, mPreviewHeight};
     }
 
     //设置过滤特效
@@ -266,7 +264,7 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
             queueEvent(new Runnable() {
                 @Override
                 public void run() {
-                    GLES20.glDeleteTextures(1, new int[]{ mOESTextureId }, 0);
+                    GLES20.glDeleteTextures(1, new int[]{mOESTextureId}, 0);
                     mOESTextureId = OpenGLUtils.NO_TEXTURE;
                 }
             });
@@ -322,7 +320,7 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
     //轮询：线程是否中断
     //          轮询特效缓存：如果不为空则一直轮询处理 ---------等待特效加入，有特效后从特效对象中拿出像素数据
     //                       ----------疑问：如果没有特效，那像素数据从哪里来-- 是否是空特效对象获取
-                            //若特效为空 则进入等待500ms，等待
+    //若特效为空 则进入等待500ms，等待
     public void enableEncoding() {
         worker = new Thread(new Runnable() {
             @Override
