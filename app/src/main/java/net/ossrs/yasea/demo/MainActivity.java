@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -111,38 +112,14 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
         mPublisher.setRecordHandler(new SrsRecordHandler(this));
         mPublisher.setPreviewResolution(640, 360);
         mPublisher.setOutputResolution(360, 640);
+        mPublisher.setScreenOrientation(Configuration.ORIENTATION_LANDSCAPE);
         mPublisher.setVideoHDMode();
         mPublisher.startCamera();
 
         btnPublish.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (btnPublish.getText().toString().contentEquals("publish")) {
-                    rtmpUrlOut = efu.getText().toString();
-
-
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("rtmpUrl", rtmpUrlOut);
-                    editor.apply();
-
-                    mPublisher.startPublish(rtmpUrlOut);
-                    mPublisher.startCamera();
-
-                    if (btnSwitchEncoder.getText().toString().contentEquals("soft encoder")) {
-                        Toast.makeText(getApplicationContext(), "Use hard encoder", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Use soft encoder", Toast.LENGTH_SHORT).show();
-                    }
-                    playVideo();
-                    btnPublish.setText("stop");
-                    btnSwitchEncoder.setEnabled(false);
-                } else if (btnPublish.getText().toString().contentEquals("stop")) {
-                    mPublisher.stopPublish();
-                    mPublisher.stopRecord();
-                    btnPublish.setText("publish");
-                    btnRecord.setText("record");
-                    btnSwitchEncoder.setEnabled(true);
-                }
+                switchPublish();
             }
         });
 
@@ -182,6 +159,38 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
                 }
             }
         });
+    }
+
+    private void switchPublish(){
+        if (btnPublish.getText().toString().contentEquals("publish")) {
+            rtmpUrlOut = efu.getText().toString();
+
+
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("rtmpUrl", rtmpUrlOut);
+            editor.apply();
+
+            mPublisher.startPublish(rtmpUrlOut);
+            mPublisher.startCamera();
+
+            if (btnSwitchEncoder.getText().toString().contentEquals("soft encoder")) {
+                Toast.makeText(getApplicationContext(), "Use hard encoder", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Use soft encoder", Toast.LENGTH_SHORT).show();
+            }
+            playVideo();
+            btnPublish.setText("stop");
+            btnSwitchEncoder.setEnabled(false);
+        } else if (btnPublish.getText().toString().contentEquals("stop")) {
+            mPublisher.stopPublish();
+            mPublisher.stopRecord();
+            btnPublish.setText("publish");
+            btnRecord.setText("record");
+            btnSwitchEncoder.setEnabled(true);
+            if(mSimpleExoPlayer!=null){
+                mSimpleExoPlayer.stop();
+            }
+        }
     }
 
     @Override
@@ -279,9 +288,9 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
         mPublisher.stopEncode();
         mPublisher.stopRecord();
         btnRecord.setText("record");
-//        mPublisher.setScreenOrientation(newConfig.orientation);
+        mPublisher.setScreenOrientation(newConfig.orientation);
         //************************************************************* 修改
-        mPublisher.setScreenOrientation(Configuration.ORIENTATION_LANDSCAPE);
+//        mPublisher.setScreenOrientation(Configuration.ORIENTATION_LANDSCAPE);
         if (btnPublish.getText().toString().contentEquals("stop")) {
             mPublisher.startEncode();
         }
@@ -688,5 +697,12 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
         mSimpleExoPlayer.release();
     }
 
-
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == 280){
+            switchPublish();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }

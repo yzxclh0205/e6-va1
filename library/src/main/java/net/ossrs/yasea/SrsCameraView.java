@@ -237,7 +237,8 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
             return false;
         }
 
-        //添加任务，销毁当前的的特效对象，创建新的特效，并设置输入的预览宽高、展示的用的View的宽高
+        //添加任务，销毁当前的的特效对象，创建新的特效，并设置输入的预览宽高、展示W用的View的宽高
+        //          特效设置三部：初始化、设置输入的预览宽高、视图的宽高
         queueEvent(new Runnable() {
             @Override
             public void run() {
@@ -318,6 +319,10 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
         return mCamId;
     }
 
+    //轮询：线程是否中断
+    //          轮询特效缓存：如果不为空则一直轮询处理 ---------等待特效加入，有特效后从特效对象中拿出像素数据
+    //                       ----------疑问：如果没有特效，那像素数据从哪里来-- 是否是空特效对象获取
+                            //若特效为空 则进入等待500ms，等待
     public void enableEncoding() {
         worker = new Thread(new Runnable() {
             @Override
@@ -341,13 +346,18 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
             }
         });
         worker.start();
+        //是否在编码中
         mIsEncoding = true;
     }
 
+    //不允许编码
     public void disableEncoding() {
+        //编码标志 设置为false
         mIsEncoding = false;
+        //清除特效集合
         mGLIntBufferCache.clear();
 
+        //中断编码线程
         if (worker != null) {
             worker.interrupt();
             try {
@@ -360,6 +370,7 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
         }
     }
 
+    //相机开启
     public boolean startCamera() {
         if (mCamera == null) {
             mCamera = openCamera();
@@ -368,32 +379,44 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
             }
         }
 
+        //设置相机的图片的宽和高、预览的宽和高
         Camera.Parameters params = mCamera.getParameters();
         params.setPictureSize(mPreviewWidth, mPreviewHeight);
         params.setPreviewSize(mPreviewWidth, mPreviewHeight);
+        //适配Fps范围（帧率范围）。找到相机所支持的都小的帧率范围
         int[] range = adaptFpsRange(SrsEncoder.VFPS, params.getSupportedPreviewFpsRange());
         params.setPreviewFpsRange(range[0], range[1]);
+        //设置像素数据预览格式
         params.setPreviewFormat(ImageFormat.NV21);
+        //设置闪光灯为关闭
         params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        //设置白平衡
         params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
+        //设置屏幕模式
         params.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
 
+        //获取相机所支持的获取焦点模式
         List<String> supportedFocusModes = params.getSupportedFocusModes();
         if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
             if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                //图片持续性聚焦
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                //自动聚焦模式
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
                 mCamera.autoFocus(null);
             } else {
+                //采用第一种聚焦模式
                 params.setFocusMode(supportedFocusModes.get(0));
             }
         }
 
+        //获取相机所支持的闪光灯模式
         List<String> supportedFlashModes = params.getSupportedFlashModes();
         if (supportedFlashModes != null && !supportedFlashModes.isEmpty()) {
             if (supportedFlashModes.contains(Camera.Parameters.FLASH_MODE_TORCH)) {
                 if (mIsTorchOn) {
+                    //手电筒模式
                     params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                 }
             } else {
@@ -401,24 +424,31 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
             }
         }
 
+        //相机设置相机参数
         mCamera.setParameters(params);
 
+        //相机设置预览角度
         mCamera.setDisplayOrientation(mPreviewRotation);
 
         try {
+            //设置相机渲染对象
             mCamera.setPreviewTexture(surfaceTexture);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //开启相机
         mCamera.startPreview();
-
         return true;
     }
 
+    //停止相机
     public void stopCamera() {
+        //不允许编码
         disableEncoding();
 
+        //关闭手电筒
         stopTorch();
+        //关闭预览回调、关闭预览、释放相机
         if (mCamera != null) {
             mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
@@ -427,8 +457,12 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
         }
     }
 
+    //打开相机
     private Camera openCamera() {
         Camera camera;
+        //若相机id小于0，获取相机参数，获取相机支持的摄像头数量，遍历获取前后摄像头的索引位置，
+        //先取前摄像头，否则取后摄像头，都没有设置为0
+        //打开摄像头
         if (mCamId < 0) {
             Camera.CameraInfo info = new Camera.CameraInfo();
             int numCameras = Camera.getNumberOfCameras();
@@ -455,14 +489,18 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
         return camera;
     }
 
+    //找到最适合指定大小的预览尺寸
     private Camera.Size adaptPreviewResolution(Camera.Size resolution) {
         float diff = 100f;
+        //纵横比
         float xdy = (float) resolution.width / (float) resolution.height;
         Camera.Size best = null;
         for (Camera.Size size : mCamera.getParameters().getSupportedPreviewSizes()) {
+            //若找到同样的尺寸，则返回
             if (size.equals(resolution)) {
                 return size;
             }
+            //记录最合适的尺寸
             float tmp = Math.abs(((float) size.width / (float) size.height) - xdy);
             if (tmp < diff) {
                 diff = tmp;
@@ -472,6 +510,7 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
         return best;
     }
 
+    //适配帧率范围
     private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges) {
         expectedFps *= 1000;
         int[] closestRange = fpsRanges.get(0);
@@ -488,8 +527,10 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
         return closestRange;
     }
 
+    //开启手电筒
     public boolean startTorch() {
         if (mCamera != null) {
+            //获取相机属性参数，获取属性中所支持的闪光模式，设置闪光模式是手电筒模式
             Camera.Parameters params = mCamera.getParameters();
             List<String> supportedFlashModes = params.getSupportedFlashModes();
             if (supportedFlashModes != null && !supportedFlashModes.isEmpty()) {
@@ -503,16 +544,18 @@ SrsCameraView extends GLSurfaceView implements GLSurfaceView.Renderer {
         return false;
     }
 
+    //关闭手电筒
     public void stopTorch() {
         if (mCamera != null) {
+            //设置相机模式为关闭
             Camera.Parameters params = mCamera.getParameters();
             params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
             mCamera.setParameters(params);
         }
     }
 
+    //预览回调接口
     public interface PreviewCallback {
-
         void onGetRgbaFrame(byte[] data, int width, int height);
     }
 }
