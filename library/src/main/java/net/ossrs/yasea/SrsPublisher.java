@@ -214,82 +214,106 @@ public class SrsPublisher {
         startAudio();
     }
 
+    //停止编码
     public void stopEncode() {
+        //停止音频录制
         stopAudio();
+        //停止相机
         stopCamera();
+        //编码器
         mEncoder.stop();
     }
 
+    //开始推流
     public void startPublish(String rtmpUrl) {
+        //混合器不为空，开始推流
         if (mFlvMuxer != null) {
             mFlvMuxer.start(rtmpUrl);
+            //混合器设置分辨率
             mFlvMuxer.setVideoResolution(mEncoder.getOutputWidth(), mEncoder.getOutputHeight());
+            //开始编码
             startEncode();
         }
     }
 
+    //停止推流
     public void stopPublish() {
         if (mFlvMuxer != null) {
+            //停止编码
             stopEncode();
+            //停止混合
             mFlvMuxer.stop();
         }
     }
 
+    //开始录制
     public boolean startRecord(String recPath) {
         return mMp4Muxer != null && mMp4Muxer.record(new File(recPath));
     }
 
+    //停止录制
     public void stopRecord() {
         if (mMp4Muxer != null) {
             mMp4Muxer.stop();
         }
     }
 
+    //暂停录制
     public void pauseRecord() {
         if (mMp4Muxer != null) {
             mMp4Muxer.pause();
         }
     }
 
+    //恢复录制
     public void resumeRecord() {
         if (mMp4Muxer != null) {
             mMp4Muxer.resume();
         }
     }
 
+    //切换到软编
     public void switchToSoftEncoder() {
         mEncoder.switchToSoftEncoder();
     }
 
+    //切换到硬编
     public void switchToHardEncoder() {
         mEncoder.switchToHardEncoder();
     }
 
+    //是否是软编
     public boolean isSoftEncoder() {
         return mEncoder.isSoftEncoder();
     }
 
+    //预览宽
     public int getPreviewWidth() {
         return mEncoder.getPreviewWidth();
     }
 
+    //预览高
     public int getPreviewHeight() {
         return mEncoder.getPreviewHeight();
     }
 
+    //获取采样帧率
     public double getmSamplingFps() {
         return mSamplingFps;
     }
 
+    //获取相机id
     public int getCamraId() {
         return mCameraView.getCameraId();
     }
 
+    //设置预览分辨率。 相机的分辨率，编码的分辨率 -----------------设置编码器的预览分辨率是做啥？？？
     public void setPreviewResolution(int width, int height) {
         int resolution[] = mCameraView.setPreviewResolution(width, height);
         mEncoder.setPreviewResolution(resolution[0], resolution[1]);
     }
 
+    //设置输出分辨率
     public void setOutputResolution(int width, int height) {
         if (width <= height) {
             mEncoder.setPortraitResolution(width, height);
@@ -298,20 +322,25 @@ public class SrsPublisher {
         }
     }
 
+    //设置屏幕 横屏还是竖屏
     public void setScreenOrientation(int orientation) {
         mCameraView.setPreviewOrientation(orientation);
         mEncoder.setScreenOrientation(orientation);
     }
 
+    //设置硬件编码模式
     public void setVideoHDMode() {
         mEncoder.setVideoHDMode();
     }
 
+    //设置慢编码模式
     public void setVideoSmoothMode() {
         mEncoder.setVideoSmoothMode();
     }
 
+    //是否只推视频流
     public void setSendVideoOnly(boolean flag) {
+        //如果 音频录制对象不为空，设置只传视频，则停止录制音频，重置pcm数据，否则开始录制
         if (mic != null) {
             if (flag) {
                 mic.stop();
@@ -323,28 +352,37 @@ public class SrsPublisher {
         sendVideoOnly = flag;
     }
 
+    //设置只推音频标志
     public void setSendAudioOnly(boolean flag) {
         sendAudioOnly = flag;
     }
 
+    //切换特效
     public boolean switchCameraFilter(MagicFilterType type) {
         return mCameraView.setFilter(type);
     }
 
+    //切换摄像头
     public void switchCameraFace(int id) {
+        //停止相机
         mCameraView.stopCamera();
+        //开启对应相机
         mCameraView.setCameraId(id);
+        //若id为零 则设置采用后置相机 ，否则选择前置相机
         if (id == 0) {
             mEncoder.setCameraBackFace();
         } else {
             mEncoder.setCameraFrontFace();
         }
+        //编码器不为空，允许编码
         if (mEncoder != null && mEncoder.isEnabled()) {
             mCameraView.enableEncoding();
         }
+        //打开相机
         mCameraView.startCamera();
     }
 
+    //设置rtmp 处理器
     public void setRtmpHandler(RtmpHandler handler) {
         mFlvMuxer = new SrsFlvMuxer(handler);
         if (mEncoder != null) {
@@ -352,6 +390,7 @@ public class SrsPublisher {
         }
     }
 
+    //设置音频录制处理器
     public void setRecordHandler(SrsRecordHandler handler) {
         mMp4Muxer = new SrsMp4Muxer(handler);
         if (mEncoder != null) {
@@ -359,6 +398,7 @@ public class SrsPublisher {
         }
     }
 
+    //设置编码处理器
     public void setEncodeHandler(SrsEncodeHandler handler) {
         mEncoder = new SrsEncoder(handler);
         if (mFlvMuxer != null) {
